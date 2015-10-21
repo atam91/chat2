@@ -1,12 +1,19 @@
-'use strict';
+define([
+    'angular',
+    'angular-route',
+    'html5-boilerplate',
+    //'fabric',
+    //'underscore',
+    //'./game/index'
+], function (angular) {
+    'use strict';
 
-// Declare app level module which depends on views, and components
-angular.module('myApp', [
-  'ngRoute',
-  'myApp.view1',
-  'myApp.view2',
-  'myApp.version'
-]).
-config(['$routeProvider', function($routeProvider) {
-  $routeProvider.otherwise({redirectTo: '/view1'});
-}]);
+    return angular.module('app', [
+        //'app.guest',
+        //'app.chat',
+        //'app.game',
+        //'services',
+        //'directives',
+        'ngRoute'
+    ]);
+});
