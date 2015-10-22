@@ -1,0 +1,16 @@
+<div class="container">
+  <div class="row">
+    <div class="col-md-4"></div>
+    <div class="col-md-4">
+      <form class="form-signin {{(error) ? 'has-error' : ''}}">
+        <h2 class="form-signin-heading">Please sign in</h2>
+        <label for="inputNickname" class="sr-only">Nickname</label>
+        <input type="text" id="inputNickname" class="form-control has-error" placeholder="Nickname" required autofocus ng-model="name" ng-change="clearError()">
+        <span id="helpBlock" class="help-block">{{error}}</span>
+        <button class="btn btn-lg btn-primary btn-block" type="submit" ng-click="login()">Sign in</button>
+      </form>
+    </div>
+    <div class="col-md-4"></div>
+  </div>
+</div>
+

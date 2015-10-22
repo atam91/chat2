@@ -1,10 +1,13 @@
-define(['angular'], function (ng) {
+define(['./module'], function (module) {
     'use strict';
-    
-    return ng.module('services', []).factory('WebSocket', function() {
+
+    return module.factory('WebSocket', function(PubSubService) {
         var service = {};
-        var handlers = {};
         var ws;
+
+        var publisher = PubSubService.createPublisher();
+        service.on = publisher.on;
+        service.off = publisher.off;
 
         service.connect = function(onclose) {
             if (ws && ws.readyState === ws.OPEN) return;
@@ -29,11 +32,7 @@ define(['angular'], function (ng) {
                 var data = JSON.parse(event.data);
                 //console.log('onmessage', data);
                 var name = data._event || '';
-                if (handlers[name]) {
-                    _.each(handlers[name], function(handler) {
-                        handler(data);
-                    });
-                }
+                publisher.event(name, data);
             };
 
             ws.onclose = function() {
@@ -41,23 +40,11 @@ define(['angular'], function (ng) {
             }
         };
 
-        service.serverEvent = function(name, data) {
+        service.send = function(name, data) {
             if (!ws) return false;
             data._event = name;
             ws.send(JSON.stringify(data));
             return true;
-        };
-
-        service.on = function(name, callback) {
-            if (typeof(callback) != "function") return false;
-            if (!(name in handlers)) {
-                handlers[name] = [];
-            }
-            handlers[name].push(callback);
-        };
-
-        service.off = function(name) {
-            delete handlers[name];
         };
 
         return service;

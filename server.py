@@ -33,6 +33,7 @@ class ChatApp(metaclass=Singleton):
         name = data.get('name')
         if not name or name in self._users:
             connection.event('~login', {'success': False})
+            return
         self._users[name] = connection
         connection.set_user(name)
         connection.event('~login', {'success': True, 'name': name})

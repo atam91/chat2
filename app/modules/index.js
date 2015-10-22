@@ -1,3 +1,4 @@
 define([
-    './WebSocket'
+    './main/index',
+    './auth/index'
 ], function () {});

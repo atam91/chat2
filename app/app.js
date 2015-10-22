@@ -4,12 +4,15 @@ define([
     'html5-boilerplate',
     //'fabric',
     'underscore',
-    './modules/index'
+    './modules/index',
+    './controllers/index'
 ], function (angular) {
     'use strict';
 
     return angular.module('app', [
-        'services',
-        'ngRoute'
+        'ngRoute',
+        'controllers',
+        'main',
+        'auth'
     ]);
 });

@@ -1,0 +1,4 @@
+define([
+    './PubSubService',
+    './WebSocket',
+], function () {});

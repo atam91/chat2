@@ -1,0 +1,4 @@
+define([
+    './AuthService',
+    './login'
+], function () {});
