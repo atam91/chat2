@@ -1,5 +1,5 @@
 define(['angular'], function (ng) {
     'use strict';
     
-    return ng.module('auth', []);
+    return ng.module('chat', []);
 });

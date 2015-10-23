@@ -13,6 +13,7 @@ define([
         'ngRoute',
         'controllers',
         'main',
-        'auth'
+        'auth',
+        'chat'
     ]);
 });

@@ -8,6 +8,7 @@ define(['./module'], function (module) {
         var publisher = PubSubService.createPublisher();
         service.on = publisher.on;
         service.off = publisher.off;
+        service.subscribe = publisher.subscribe;
 
         service.connect = function(onclose) {
             if (ws && ws.readyState === ws.OPEN) return;

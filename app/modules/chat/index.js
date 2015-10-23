@@ -1,0 +1,4 @@
+define([
+    './ChatService',
+    './chat'
+], function () {});

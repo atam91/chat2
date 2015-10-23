@@ -1,4 +1,5 @@
 define([
     './main/index',
-    './auth/index'
+    './auth/index',
+    './chat/index'
 ], function () {});
