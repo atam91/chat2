@@ -4,7 +4,7 @@ define(['./module'], function(module) {
     return module.factory('ChatService', function(PubSubService, WebSocket, AuthService) {
         var service = {};
         var users = [];
-        var messages = [];
+        var messageBuffer = [];
 
         var publisher = PubSubService.createPublisher();
         service.on = publisher.on;
@@ -16,13 +16,16 @@ define(['./module'], function(module) {
                 text: data.message,
                 private: data.private || ''
             };
-            messages.unshift(message);
+            messageBuffer.unshift(message);
             return message;
         };
 
         WebSocket.subscribe({
             '~message': function(data) {
                 return addMessage(data);
+            },
+            '~messages': function(data) {
+                _.each(data.messages, addMessage);
             },
             '~participants': function(data) {
                 users = data.users;
@@ -43,7 +46,7 @@ define(['./module'], function(module) {
         };
 
         service.getMessages = function() {
-            return messages.slice();
+            return messageBuffer.slice();
         };
 
         //отправка сообщения

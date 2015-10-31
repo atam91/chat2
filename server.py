@@ -24,6 +24,7 @@ class Singleton(type):
 
 class ChatApp(metaclass=Singleton):
     _users = dict()
+    _messageBuffer = list()
 
     def event(self, eventName, data):
         for name, connect in self._users.items():
@@ -37,6 +38,7 @@ class ChatApp(metaclass=Singleton):
         self._users[name] = connection
         connection.set_user(name)
         connection.event('~login', {'success': True, 'name': name})
+        connection.event('~messages', {'messages': self._messageBuffer})
         self.participants()
 
     def logout(self, name):
@@ -48,6 +50,7 @@ class ChatApp(metaclass=Singleton):
         if not data.get('message'):
             return False
         data['name'] = connection._user
+        self._messageBuffer.append(data.copy())
         self.event('~message', data)
 
     def private(self, data, connection):
@@ -102,6 +105,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             if hasattr(chat, event):
                 handler = getattr(chat, event)
                 if callable(handler):
+                    del data['_event']
                     handler(data, self)
 
     def event(self, eventName, data):

@@ -33,7 +33,11 @@ define(['./module'], function(module) {
                 ChatService.on('~private', function(data) {
                     addMessage(data);
                 });
-
+                ChatService.on('~messages', function(data) {
+                    $scope.$apply(function() {
+                        $scope.messages = ChatService.getMessages();
+                    });
+                });
 
                 $scope.privateFilter = function(message) {
                     if (!$scope.private) return true;
