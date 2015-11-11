@@ -41,7 +41,7 @@ define(['./module'], function (module) {
             }
         };
 
-        service.send = function(name, data) {
+        service.sendEvent = function(name, data) {
             if (!ws) return false;
             data._event = name;
             ws.send(JSON.stringify(data));

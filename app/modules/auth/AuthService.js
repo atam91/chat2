@@ -22,15 +22,15 @@ define(['./module'], function (module) {
             WebSocket.connect(function() {
                 setUser(false);
             });
-            WebSocket.on('~login', function(data) {
+            WebSocket.on('login', function(data) {
                 if (data.success) {
                     setUser(data.name);
                 } else {
                     errorCallback(data);
                 }
-                WebSocket.off('~login');
+                WebSocket.off('login');
             });
-            WebSocket.send('login', loginData);
+            WebSocket.sendEvent('login', loginData);
         };
 
         return service;

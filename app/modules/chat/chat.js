@@ -27,13 +27,13 @@ define(['./module'], function(module) {
                         $scope.messages.unshift(message);
                     });
                 };
-                ChatService.on('~message', function(data) {
+                ChatService.on('chat:message', function(data) {
                     addMessage(data);
                 });
-                ChatService.on('~private', function(data) {
+                ChatService.on('chat:private', function(data) {
                     addMessage(data);
                 });
-                ChatService.on('~messages', function(data) {
+                ChatService.on('chat:messages', function(data) {
                     $scope.$apply(function() {
                         $scope.messages = ChatService.getMessages();
                     });
@@ -44,7 +44,7 @@ define(['./module'], function(module) {
                     return message.private == $scope.private;
                 };
 
-                ChatService.on('~participants', function(data) {
+                ChatService.on('participants', function(data) {
                     $scope.$apply(function() {
                         updateUsers();
                     });

@@ -21,16 +21,16 @@ define(['./module'], function(module) {
         };
 
         WebSocket.subscribe({
-            '~message': function(data) {
+            'chat:message': function(data) {
                 return addMessage(data);
             },
-            '~messages': function(data) {
+            'chat:messages': function(data) {
                 _.each(data.messages, addMessage);
             },
-            '~participants': function(data) {
-                users = data.users;
+            'participants': function(data) {
+                users = data.users; //TODO вынести в AuthService
             },
-            '~private': function(data) {
+            'chat:private': function(data) {
                 data.name = data.from + ' > ' + data.to;
                 if (data.to == AuthService.getUser()) {
                     data.private = data.from;
@@ -51,12 +51,12 @@ define(['./module'], function(module) {
 
         //отправка сообщения
         service.message = function(message) {
-            WebSocket.send('message', {'message': message});
+            WebSocket.sendEvent('chat:message', {'message': message});
         };
 
         //отправка личного сообщения
         service.private = function(user, message) {
-            WebSocket.send('private', {'to': user, 'message': message});
+            WebSocket.sendEvent('chat:private', {'to': user, 'message': message});
         };
 
         return service;

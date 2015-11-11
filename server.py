@@ -15,61 +15,128 @@ app_url = '/app/index.html'
 
 define('port', default=8888, help='run on the given port', type=int)
 
-class Singleton(type):
-    _instances = {}
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
+class SingleState:
+    _shared_state = {}
+    def __init__(self):
+        self.__dict__ = self._shared_state
 
-class ChatApp(metaclass=Singleton):
+class EventHandler:
+    _sender = None
+    _event_domain = None
+
+    def set_sender(self, sender):
+        self._sender = sender
+
+    def set_event_domain(self, event_domain):
+        self._event_domain = event_domain
+
+    def send_event(self, event_name, data, user = None):
+        #if self._event_domain:
+            #event_name = self._event_domain + ':' + event_name
+        if self._sender:
+            return self._sender.send_event(event_name, data, user = user)
+
+    def on_event(self, event, data, socket_handler):
+        event_method = 'on_' + event
+        if hasattr(self, event_method):
+            handler = getattr(self, event_method)
+            if callable(handler):
+                handler(data, socket_handler)
+
+class SocketApplication(SingleState):
+    _handlers = {}
+
+    def __init__(self, **handlers):
+        self._handlers = handlers
+
+    @staticmethod
+    def parse_event(data):
+        event_domain = ''
+        event = data.get('_event', '')
+        if event:
+            del data['_event']
+            colon_index = event.find(':')
+            if colon_index != -1:
+                event_domain = event[:colon_index]
+                event = event[colon_index + 1:]
+        return (event_domain, event)
+
+    def on_socket_message(self, data, socket_handler):
+        (event_domain, event) = self.parse_event(data)
+        handler = self._handlers.get(event_domain)
+        if handler:
+            handler.on_event(event, data, socket_handler)
+
+    def call_hook(self, hook_name, socket_handler):
+        hook_method = hook_name + '_hook'
+        for key, handler in self._handlers.items():
+            if hasattr(handler, hook_method):
+                getattr(handler, hook_method)(socket_handler)
+
+class AuthApplication(SocketApplication, EventHandler):
     _users = dict()
-    _messageBuffer = list()
 
-    def event(self, eventName, data):
-        for name, connect in self._users.items():
-            connect.event(eventName, data)
+    def __init__(self, **handlers):
+        for event_domain, handler in handlers.items():
+            handler.set_sender(self)
+            handler.set_event_domain(event_domain)
+        handlers[''] = self
+        super().__init__(**handlers)
 
-    def login(self, data, connection):
+    def on_login(self, data, connection):
         name = data.get('name')
         if not name or name in self._users:
-            connection.event('~login', {'success': False})
+            connection.send_event('login', {'success': False})
             return
         self._users[name] = connection
         connection.set_user(name)
-        connection.event('~login', {'success': True, 'name': name})
-        connection.event('~messages', {'messages': self._messageBuffer})
+        connection.send_event('login', {'success': True, 'name': name})
+        self.call_hook('on_login', connection)
         self.participants()
 
     def logout(self, name):
-        logging.info("logout %r", name)
         del self._users[name]
         self.participants()
 
-    def message(self, data, connection):
+    def participants(self):
+        users = list(self._users.keys())
+        self.send_event('participants', {'users': users})
+
+    def send_event(self, event_name, data, user = None):
+        if user:
+            if user in self._users:
+                self._users[name].send_event(event_name, data)
+            else:
+                return False
+        else:
+            for name, connection in self._users.items():
+                connection.send_event(event_name, data)
+        return True
+
+class ChatService(SingleState, EventHandler):
+    _messageBuffer = list()
+
+    def on_login_hook(self, connection):
+        connection.send_event('chat:messages', {'messages': self._messageBuffer})
+
+    def on_message(self, data, connection):
         if not data.get('message'):
             return False
         data['name'] = connection._user
         self._messageBuffer.append(data.copy())
-        self.event('~message', data)
+        self.send_event('chat:message', data)
 
-    def private(self, data, connection):
+    def on_private(self, data, connection):
         if not data.get('message'):
             return False
-        name = data.get('to')
-        if name in self._users:
-            data['from'] = connection._user
-            self._users[name].event('~private', data)
-            connection.event('~private', data)
+        data['from'] = connection._user
+        recipient = data.get('to')
+        if self.send_event('chat:private', data, user = recipient):
+            connection.send_event('chat:private', data)
 
-    def participants(self):
-        users = list(self._users.keys())
-        self.event('~participants', {'users': users})
+app = AuthApplication(chat = ChatService())
 
-
-chat = ChatApp()
-
-class Application(tornado.web.Application):
+class TornadoApplication(tornado.web.Application):
     def __init__(self):
         handlers = [
             (r'/', MainHandler),
@@ -81,42 +148,33 @@ class Application(tornado.web.Application):
         )
         tornado.web.Application.__init__(self, handlers, **settings)
 
-
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.redirect(app_url)
 
-
 class WebSocketHandler(tornado.websocket.WebSocketHandler):
-    def open(self):
-        self._user = False
+    _user = None
 
     def set_user(self, name):
         self._user = name
 
     def on_close(self):
         if self._user:
-            chat.logout(self._user)
+            app.logout(self._user)
 
     def on_message(self, msg):
         data = tornado.escape.json_decode(msg)
-        event = data.get('_event')
-        if event:
-            if hasattr(chat, event):
-                handler = getattr(chat, event)
-                if callable(handler):
-                    del data['_event']
-                    handler(data, self)
+        app.on_socket_message(data, self)
 
-    def event(self, eventName, data):
-        data['_event'] = eventName
+    def send_event(self, event_name, data):
+        data['_event'] = event_name
         self.write_message(esc.json_encode(data))
 
 
 def main():
     parse_command_line()
-    app = Application()
-    app.listen(options.port)
+    tornado_app = TornadoApplication()
+    tornado_app.listen(options.port)
     tornado.ioloop.IOLoop.instance().start()
 
 
