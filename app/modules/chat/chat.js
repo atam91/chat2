@@ -7,19 +7,7 @@ define(['./module'], function(module) {
             templateUrl: 'modules/chat/chatTemplate.html',
             replace: true,
             link: function($scope, element, attrs) {
-                $scope.private = "";
-
-                var updateUsers = function() {
-                    var users = ChatService.getUsers();
-                    var otherUsers = _.without(users, AuthService.getUser());
-
-                    if ($scope.private && users.indexOf($scope.private) == -1) {
-                        $scope.private = "";
-                    }
-                    $scope.usersString = users.join(',');
-                    $scope.otherUsers = otherUsers;
-                };
-                updateUsers();
+                $scope.private = '';
 
                 $scope.messages = ChatService.getMessages();
                 var addMessage = function(message) {
@@ -44,19 +32,12 @@ define(['./module'], function(module) {
                     return message.private == $scope.private;
                 };
 
-                ChatService.on('participants', function(data) {
-                    $scope.$apply(function() {
-                        updateUsers();
-                    });
-                    
-                });
-
                 $scope.sendMessage = function() {
                     if ($scope.message) {
                         if ($scope.private) {
-                            ChatService.private($scope.private, $scope.message);
+                            ChatService.sendPrivate($scope.private, $scope.message);
                         } else {
-                            ChatService.message($scope.message);
+                            ChatService.sendMessage($scope.message);
                         }
                         $scope.message = '';
                     }

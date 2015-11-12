@@ -24,10 +24,7 @@
                             <button type="submit" class="btn btn-default" ng-click="sendMessage()">Send</button>
                         </div>
                         <div class="col-md-3">
-                            <select ng-model="private" class="form-control">
-                                <option value="">Всем</option>
-                                <option ng-repeat="user in otherUsers" value={{user}}>{{user}}</option>
-                            </select>
+                            <div select-from="otherUsers" value="private" empty-value="Всем"></div>
                         </div>
                     </form>
                 </div>

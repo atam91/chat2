@@ -12,6 +12,7 @@ define([
     return angular.module('app', [
         'ngRoute',
         'controllers',
+        'directives',
         'main',
         'auth',
         'chat'

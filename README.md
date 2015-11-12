@@ -15,4 +15,4 @@ Front-end: AngularJS.
 
 ### Run the Application
     ./server.py
-Now browse to the app at `http://localhost:8888.`
+Now browse to the app at `http://localhost:8888`.

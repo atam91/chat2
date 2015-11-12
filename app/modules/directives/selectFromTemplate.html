@@ -1,0 +1,4 @@
+<select ng-model="value" class="form-control">
+    <option ng-if="emptyValue" value="">{{emptyValue}}</option>
+    <option ng-repeat="option in selectFrom" value={{option}}>{{option}}</option>
+</select>

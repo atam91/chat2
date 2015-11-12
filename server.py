@@ -22,19 +22,13 @@ class SingleState:
 
 class EventHandler:
     _sender = None
-    _event_domain = None
 
     def set_sender(self, sender):
         self._sender = sender
 
-    def set_event_domain(self, event_domain):
-        self._event_domain = event_domain
-
-    def send_event(self, event_name, data, user = None):
-        #if self._event_domain:
-            #event_name = self._event_domain + ':' + event_name
+    def send_event(self, event_name, data, recipient = None):
         if self._sender:
-            return self._sender.send_event(event_name, data, user = user)
+            return self._sender.send_event(event_name, data, recipient = recipient)
 
     def on_event(self, event, data, socket_handler):
         event_method = 'on_' + event
@@ -77,9 +71,8 @@ class AuthApplication(SocketApplication, EventHandler):
     _users = dict()
 
     def __init__(self, **handlers):
-        for event_domain, handler in handlers.items():
+        for key, handler in handlers.items():
             handler.set_sender(self)
-            handler.set_event_domain(event_domain)
         handlers[''] = self
         super().__init__(**handlers)
 
@@ -102,10 +95,10 @@ class AuthApplication(SocketApplication, EventHandler):
         users = list(self._users.keys())
         self.send_event('participants', {'users': users})
 
-    def send_event(self, event_name, data, user = None):
-        if user:
-            if user in self._users:
-                self._users[name].send_event(event_name, data)
+    def send_event(self, event_name, data, recipient = None):
+        if recipient:
+            if recipient in self._users:
+                self._users[recipient].send_event(event_name, data)
             else:
                 return False
         else:
@@ -131,7 +124,7 @@ class ChatService(SingleState, EventHandler):
             return False
         data['from'] = connection._user
         recipient = data.get('to')
-        if self.send_event('chat:private', data, user = recipient):
+        if self.send_event('chat:private', data, recipient = recipient):
             connection.send_event('chat:private', data)
 
 app = AuthApplication(chat = ChatService())
