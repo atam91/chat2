@@ -1,7 +1,7 @@
 {
   "name": "chat2",
   "version": "0.0.0",
-  "description": "Socket chat&game",
+  "description": "Simple socket chat",
   "repository": "https://github.com/atam91/chat2",
   "devDependencies": {
     "bower": "^1.3.1",

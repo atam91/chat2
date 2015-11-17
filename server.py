@@ -156,7 +156,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             app.logout(self._user)
 
     def on_message(self, msg):
-        data = tornado.escape.json_decode(msg)
+        data = esc.json_decode(msg)
         app.on_socket_message(data, self)
 
     def send_event(self, event_name, data):

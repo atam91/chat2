@@ -12,7 +12,6 @@ define(['./module'], function (module) {
 
         service.connect = function(onclose) {
             if (ws && ws.readyState === ws.OPEN) return;
-            //TODO $location
             ws = new WebSocket("ws://" + window.location.host + "/ws");
 
             var sendOrig = ws.send;
@@ -31,7 +30,6 @@ define(['./module'], function (module) {
 
             ws.onmessage = function(event) {
                 var data = JSON.parse(event.data);
-                //console.log('onmessage', data);
                 var name = data._event || '';
                 publisher.event(name, data);
             };

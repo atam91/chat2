@@ -1,7 +1,7 @@
 Chat2
 =====
 
-Socket chat.
+Simple socket chat.
 
 Back-end: Python, Tornado.
 Front-end: AngularJS.
